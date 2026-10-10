@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Martina, una sorpresa per te</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1C2B7A;
+    --pink: #FF5C8A;
+    --butter: #FFD94A;
+    --paper: #FFF8EC;
+    --ink: #10184A;
+    --sky: #8FD3FF;
+    --bg: var(--navy);
+    --fg: var(--paper);
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #16226A; }
+  }
+  :root[data-theme="dark"] { --bg: #16226A; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .stage {
+    position: relative;
+    height: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+  canvas#confetti { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+
+  .scene {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    padding: 32px 28px;
+    text-align: center;
+    opacity: 0; visibility: hidden;
+    transition: opacity .6s ease, visibility 0s linear .6s;
+  }
+  .scene.on { opacity: 1; visibility: visible; transition: opacity .6s ease, visibility 0s; }
+
+  h1, h2 { font-weight: 800; line-height: .95; letter-spacing: -0.02em; }
+  .hand { font-family: "Caveat", "Comic Sans MS", cursive; font-weight: 600; }
+
+  /* Intro */
+  .gift-btn {
+    appearance: none; border: 0; background: none; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 28px;
+    color: var(--fg); font: inherit;
+  }
+  .gift-btn:focus-visible { outline: 3px solid var(--butter); outline-offset: 10px; border-radius: 16px; }
+  .gift { width: 150px; animation: wobble 2.4s ease-in-out infinite; }
+  .gift-btn span { font-size: 1.35rem; font-weight: 700; }
+  .gift-btn small { font-size: .95rem; opacity: .7; font-weight: 400; }
+  @keyframes wobble {
+    0%, 70%, 100% { transform: rotate(0); }
+    75% { transform: rotate(-7deg); } 80% { transform: rotate(6deg); }
+    85% { transform: rotate(-4deg); } 90% { transform: rotate(2deg); }
+  }
+
+  /* Auguri */
+  .big-name { font-size: clamp(4.2rem, 22vw, 7.5rem); color: var(--butter); }
+  .scene .sub { font-size: 1.6rem; font-weight: 700; margin-top: 14px; }
+  .on .pop { animation: pop .7s cubic-bezier(.2,1.6,.4,1) both; }
+  .on .pop.d1 { animation-delay: .5s; }
+  @keyframes pop { from { transform: scale(.3) rotate(-8deg); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  .line { font-size: 2rem; font-weight: 700; line-height: 1.15; max-width: 14ch; }
+  .note { font-size: 1.9rem; color: var(--sky); margin-top: 18px; }
+  .on .rise { animation: rise .6s ease both; }
+  .on .rise.d1 { animation-delay: 1.1s; }
+  @keyframes rise { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  /* Scartati */
+  .nope { list-style: none; padding: 0; display: grid; gap: 22px; }
+  .nope li { font-size: 1.5rem; line-height: 1.2; font-weight: 700; position: relative; opacity: 0; }
+  .nope li em { display: block; font-style: normal; font-family: "Caveat", cursive; color: var(--pink); font-size: 1.6rem; transform: rotate(-3deg); opacity: 0; }
+  .on .nope li { animation: rise .45s ease both; }
+  .on .nope li em { animation: rise .35s ease both; }
+  .on .nope li:nth-child(1) { animation-delay: .2s; }  .on .nope li:nth-child(1) em { animation-delay: 2.0s; }
+  .on .nope li:nth-child(2) { animation-delay: 3.8s; }
+  .on .nope li:nth-child(3) { animation-delay: 5.8s; } .on .nope li:nth-child(3) em { animation-delay: 7.4s; }
+  .nope li s { text-decoration-color: var(--pink); text-decoration-thickness: 4px; text-decoration-line: none; color: var(--butter); font-size: 1.9rem; }
+  .on .nope li:nth-child(3) s { animation: strike .3s linear 7.2s forwards; }
+  @keyframes strike { to { text-decoration-line: line-through; } }
+
+  /* Valigia */
+  .suitcase { width: 140px; margin-bottom: 26px; }
+  .on .suitcase { animation: hop .5s ease-in-out infinite alternate; }
+  @keyframes hop { from { transform: translateY(0) rotate(-2deg); } to { transform: translateY(-14px) rotate(2deg); } }
+
+  /* Parigi */
+  #s-paris { justify-content: flex-end; padding-bottom: 0; background: var(--pink); color: var(--ink); }
+  #s-paris .pre { font-size: 1.8rem; font-weight: 700; margin-bottom: 4px; }
+  #s-paris h2 { font-size: clamp(5rem, 25vw, 8.5rem); color: var(--paper); text-shadow: 5px 5px 0 var(--navy); }
+  .tower { width: min(64%, 260px); margin-top: 14px; transform: translateY(105%); }
+  .on .tower { animation: towerUp 1.4s cubic-bezier(.2,.9,.3,1) .6s forwards; }
+  @keyframes towerUp { to { transform: translateY(0); } }
+  .on #paris-word { animation: pop .8s cubic-bezier(.2,1.6,.4,1) 1.5s both; }
+
+  /* Biglietto */
+  #s-ticket { background: var(--butter); color: var(--ink); }
+  .ticket {
+    width: 100%; max-width: 360px;
+    background: var(--paper);
+    border-radius: 18px;
+    box-shadow: 8px 8px 0 var(--navy);
+    text-align: left;
+    transform: rotate(-2deg);
+  }
+  .on .ticket { animation: slideIn .9s cubic-bezier(.2,1.3,.4,1) both; }
+  @keyframes slideIn { from { transform: translateY(120%) rotate(8deg); } to { transform: rotate(-2deg); } }
+  .t-head { background: var(--navy); color: var(--paper); padding: 16px 20px; border-radius: 18px 18px 0 0; display: flex; justify-content: space-between; align-items: center; }
+  .t-head b { font-size: 1.15rem; }
+  .t-route { display: flex; justify-content: space-between; align-items: center; padding: 20px 20px 8px; }
+  .t-route strong { font-size: 2.4rem; font-weight: 800; line-height: 1; }
+  .t-route .plane { font-size: 1.6rem; }
+  .t-route small { display: block; font-size: .85rem; opacity: .65; font-weight: 400; margin-top: 4px; }
+  .t-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; padding: 14px 20px 20px; }
+  .t-grid div small { display: block; font-size: .8rem; opacity: .6; }
+  .t-grid div span { font-size: 1.1rem; font-weight: 700; }
+  .t-perf { border-top: 3px dashed #CFC6B4; margin: 0 14px; }
+  .t-foot { padding: 14px 20px 18px; font-size: 1.5rem; color: var(--pink); }
+
+  /* Finale */
+  #s-end h2 { font-size: clamp(3.4rem, 16vw, 5.4rem); color: var(--butter); }
+  #s-end .hand { font-size: 2.1rem; margin-top: 18px; color: var(--sky); }
+  .replay {
+    margin-top: 44px; appearance: none; border: 2px solid var(--paper); background: transparent; color: var(--paper);
+    font: inherit; font-weight: 700; font-size: 1rem; padding: 12px 24px; border-radius: 999px; cursor: pointer;
+  }
+  .replay:focus-visible, .mute:focus-visible { outline: 3px solid var(--butter); outline-offset: 3px; }
+
+  .mute {
+    position: absolute; z-index: 10; top: 14px; right: 14px;
+    appearance: none; border: 0; width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,.18); color: var(--paper); font-size: 1.2rem; cursor: pointer;
+    display: none;
+  }
+  .mute.show { display: block; }
+
+  .progress { position: absolute; z-index: 10; left: 16px; right: 70px; top: 30px; height: 4px; background: rgba(255,255,255,.2); border-radius: 4px; overflow: hidden; display: none; }
+  .progress.show { display: block; }
+  .progress i { display: block; height: 100%; width: 0; background: var(--paper); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    .tower { transform: none; }
+  }
+</style>
+</head>
+<body>
+<main class="stage" id="stage">
+  <canvas id="confetti"></canvas>
+  <button class="mute" id="mute" aria-label="Disattiva audio">🔊</button>
+  <div class="progress" id="progress"><i id="bar"></i></div>
+
+  <!-- 0: apri -->
+  <section class="scene on" id="s-intro">
+    <button class="gift-btn" id="start">
+      <svg class="gift" viewBox="0 0 120 120" aria-hidden="true">
+        <rect x="12" y="46" width="96" height="66" rx="6" fill="#FF5C8A"/>
+        <rect x="6" y="32" width="108" height="22" rx="5" fill="#FF7FA3"/>
+        <rect x="52" y="32" width="16" height="80" fill="#FFD94A"/>
+        <path d="M60 32 C40 6 18 18 34 30 Z M60 32 C80 6 102 18 86 30 Z" fill="#FFD94A"/>
+      </svg>
+      <span>Martina, tocca qui</span>
+      <small>alza il volume</small>
+    </button>
+  </section>
+
+  <!-- 1 -->
+  <section class="scene" id="s-hi">
+    <h1 class="big-name pop">Martina!</h1>
+    <p class="sub pop d1">Buon compleanno 🎂</p>
+  </section>
+
+  <!-- 2 -->
+  <section class="scene" id="s-think">
+    <p class="line rise">Ho pensato a cosa avrebbe potuto piacerti…</p>
+    <p class="note hand rise d1">Francesco Costa!!!</p>
+  </section>
+
+  <!-- 3 -->
+  <section class="scene" id="s-nope">
+    <ul class="nope">
+      <li>Però il libro di Costa mi sembrava un po' poco<em>(non per sminuire lui)</em></li>
+      <li>Allora avevo pensato ad un regalo più da architetto, tipo:</li>
+      <li><s>la Tour Eiffel con i Lego</s><em>ma non ti piacciono i Lego</em></li>
+    </ul>
+  </section>
+
+  <!-- 4 -->
+  <section class="scene" id="s-pack">
+    <svg class="suitcase" viewBox="0 0 120 120" aria-hidden="true">
+      <rect x="42" y="10" width="36" height="20" rx="6" fill="none" stroke="#FFF8EC" stroke-width="7"/>
+      <rect x="14" y="28" width="92" height="76" rx="12" fill="#FFD94A"/>
+      <rect x="34" y="28" width="9" height="76" fill="#E8B92A"/>
+      <rect x="77" y="28" width="9" height="76" fill="#E8B92A"/>
+      <circle cx="30" cy="110" r="6" fill="#FFF8EC"/><circle cx="90" cy="110" r="6" fill="#FFF8EC"/>
+      <circle cx="60" cy="60" r="11" fill="#FF5C8A"/>
+    </svg>
+    <h2 class="line pop">Allora ho pensato…</h2>
+    <p class="note hand rise d1">perché non andiamo a vederla dal vivo?</p>
+  </section>
+
+  <!-- 5 -->
+  <section class="scene" id="s-paris">
+    <p class="pre">Si va a…</p>
+    <h2 id="paris-word">Parigi!</h2>
+    <svg class="tower" viewBox="0 0 200 300" aria-hidden="true">
+      <g fill="#1C2B7A">
+        <rect x="96" y="0" width="8" height="22"/>
+        <path d="M88 22 h24 l4 14 h-32 z"/>
+        <path d="M86 36 h28 l14 84 h-56 z"/>
+        <rect x="62" y="118" width="76" height="12" rx="2"/>
+        <path d="M68 130 h64 l18 70 h-100 z"/>
+        <rect x="40" y="198" width="120" height="12" rx="2"/>
+        <path d="M46 210 h108 l36 90 h-46 c-6 -40 -26 -58 -44 -58 s-38 18 -44 58 h-46 z"/>
+      </g>
+      <g fill="#FF5C8A">
+        <path d="M94 50 h12 l6 60 h-24 z"/>
+        <path d="M84 142 h32 l8 46 h-48 z"/>
+      </g>
+    </svg>
+  </section>
+
+  <!-- 6 -->
+  <section class="scene" id="s-ticket">
+    <article class="ticket" aria-label="Biglietto per Parigi">
+      <div class="t-head"><b>Carta d'imbarco</b><span>✈︎</span></div>
+      <div class="t-route">
+        <div><strong>QUI</strong><small>casa tua</small></div>
+        <div class="plane">✈️</div>
+        <div style="text-align:right"><strong>PAR</strong><small>Parigi</small></div>
+      </div>
+      <div class="t-grid">
+        <div><small>Passeggera</small><span>Martina</span></div>
+        <div><small>Motivo</small><span>Compleanno</span></div>
+        <div><small>Partenza</small><span>27 novembre</span></div>
+        <div><small>Ritorno</small><span>30 novembre</span></div>
+        <div><small>Croissant</small><span>Illimitati</span></div>
+        <div><small>Scadenze</small><span>Sospese</span></div>
+      </div>
+      <div class="t-perf"></div>
+      <p class="t-foot hand">3 notti, zero Calci</p>
+    </article>
+  </section>
+
+  <!-- 7 -->
+  <section class="scene" id="s-end">
+    <h2 class="pop">Pronta per i croissant?</h2>
+    <p class="hand rise d1">Joyeux anniversaire! 🥐</p>
+    <button class="replay" id="replay">Guarda di nuovo</button>
+  </section>
+</main>
+
+<script>
+(function () {
+  const scenes = ["s-intro","s-hi","s-think","s-nope","s-pack","s-paris","s-ticket","s-end"];
+  const durations = [0, 3400, 4200, 11000, 4400, 4600, 6000, 0]; // ms
+  const total = durations.reduce((a,b)=>a+b,0);
+  let timers = [], current = 0, startTime = 0, raf;
+
+  const $ = id => document.getElementById(id);
+  const bar = $("bar"), progress = $("progress"), muteBtn = $("mute");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function show(i) {
+    scenes.forEach((id, k) => $(id).classList.toggle("on", k === i));
+    current = i;
+    if (scenes[i] === "s-paris") setTimeout(() => burst(180), 1500);
+    if (scenes[i] === "s-end") { burst(120); progress.classList.remove("show"); $("replay").focus({preventScroll:true}); }
+  }
+
+  function tick() {
+    const p = Math.min(1, (performance.now() - startTime) / total);
+    bar.style.width = (p * 100) + "%";
+    if (p < 1) raf = requestAnimationFrame(tick);
+  }
+
+  function play() {
+    timers.forEach(clearTimeout); timers = [];
+    cancelAnimationFrame(raf);
+    let t = 0;
+    for (let i = 1; i < scenes.length; i++) {
+      const at = t;
+      timers.push(setTimeout(() => show(i), at));
+      t += durations[i];
+    }
+    progress.classList.add("show");
+    muteBtn.classList.add("show");
+    startTime = performance.now();
+    tick();
+    startMusic();
+  }
+
+  $("start").addEventListener("click", play);
+  $("replay").addEventListener("click", () => { stopMusic(); play(); });
+
+  /* ---------- musica (melodia originale, sintetizzata) ---------- */
+  let ctx, master, musicTimer, muted = false;
+  const N = { C4:261.63, D4:293.66, E4:329.63, F4:349.23, G4:392, A4:440, B4:493.88, C5:523.25, D5:587.33, E5:659.25, F5:698.46, G5:783.99 };
+  // valzerino allegro in 3/4: [nota, battiti]
+  const melody = [
+    ["E5",1],["G5",1],["E5",1], ["C5",2],["D5",1], ["E5",1],["D5",1],["C5",1], ["G4",3],
+    ["A4",1],["C5",1],["A4",1], ["F5",2],["E5",1], ["D5",1],["E5",1],["F5",1], ["E5",3],
+    ["E5",1],["G5",1],["E5",1], ["C5",2],["D5",1], ["E5",1],["D5",1],["B4",1], ["C5",3]
+  ];
+  const bass = ["C4","G4","C4","G4","F4","F4","G4","C4","C4","G4","F4","C4"];
+  const beat = 0.27;
+
+  function note(freq, start, dur, type, vol) {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(0, start);
+    g.gain.linearRampToValueAtTime(vol, start + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+    o.connect(g); g.connect(master);
+    o.start(start); o.stop(start + dur + 0.05);
+  }
+
+  function scheduleLoop(t0) {
+    let t = t0;
+    melody.forEach(([n, b]) => {
+      note(N[n], t, b * beat * 0.95, "square", 0.05);
+      note(N[n] * 1.005, t, b * beat * 0.95, "sawtooth", 0.025);
+      t += b * beat;
+    });
+    bass.forEach((n, i) => {
+      const bt = t0 + i * 3 * beat;
+      note(N[n] / 2, bt, beat * 0.9, "triangle", 0.12);
+      note(N[n], bt + beat, beat * 0.5, "triangle", 0.05);
+      note(N[n], bt + 2 * beat, beat * 0.5, "triangle", 0.05);
+    });
+    return t - t0;
+  }
+
+  function startMusic() {
+    try {
+      ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+      ctx.resume();
+      master = ctx.createGain();
+      master.gain.value = muted ? 0 : 0.9;
+      master.connect(ctx.destination);
+      let next = ctx.currentTime + 0.1;
+      const loop = () => {
+        const len = scheduleLoop(next);
+        next += len;
+        musicTimer = setTimeout(loop, (next - ctx.currentTime - 1) * 1000);
+      };
+      loop();
+    } catch (e) { /* audio non disponibile: il resto funziona */ }
+  }
+  function stopMusic() {
+    clearTimeout(musicTimer);
+    if (master) { try { master.gain.setTargetAtTime(0, ctx.currentTime, 0.05); setTimeout(()=>master.disconnect(), 300); } catch(e){} }
+  }
+  muteBtn.addEventListener("click", () => {
+    muted = !muted;
+    if (master && ctx) master.gain.setTargetAtTime(muted ? 0 : 0.9, ctx.currentTime, 0.05);
+    muteBtn.textContent = muted ? "🔇" : "🔊";
+    muteBtn.setAttribute("aria-label", muted ? "Attiva audio" : "Disattiva audio");
+  });
+
+  /* ---------- coriandoli ---------- */
+  const cv = $("confetti"), cx = cv.getContext("2d");
+  let parts = [], animating = false;
+  const colors = ["#FFD94A","#FF5C8A","#FFF8EC","#8FD3FF","#1C2B7A"];
+  function resize() { const r = window.devicePixelRatio || 1; cv.width = cv.clientWidth * r; cv.height = cv.clientHeight * r; cx.setTransform(r,0,0,r,0,0); }
+  window.addEventListener("resize", resize); resize();
+  function burst(n) {
+    if (reduce) return;
+    const w = cv.clientWidth;
+    for (let i = 0; i < n; i++) parts.push({
+      x: w/2 + (Math.random()-.5)*60, y: cv.clientHeight*0.35,
+      vx: (Math.random()-.5)*11, vy: -Math.random()*12-4,
+      s: 6+Math.random()*7, r: Math.random()*6, vr: (Math.random()-.5)*.3,
+      c: colors[(Math.random()*colors.length)|0], life: 0
+    });
+    if (!animating) { animating = true; requestAnimationFrame(draw); }
+  }
+  function draw() {
+    cx.clearRect(0,0,cv.clientWidth,cv.clientHeight);
+    parts.forEach(p => {
+      p.vy += .28; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life++;
+      cx.save(); cx.translate(p.x,p.y); cx.rotate(p.r); cx.fillStyle = p.c;
+      cx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); cx.restore();
+    });
+    parts = parts.filter(p => p.y < cv.clientHeight + 40 && p.life < 400);
+    if (parts.length) requestAnimationFrame(draw); else { animating = false; cx.clearRect(0,0,cv.clientWidth,cv.clientHeight); }
+  }
+})();
+</script>
+</body>
+</html>
